@@ -4,14 +4,29 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 
 public class DrillActivity extends Activity {
+
+
+    private Drill drill;
+    private Button btnStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drill);
+        btnStart = (Button) findViewById(R.id.start_button);
+        btnStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                drill = new Drill();
+                btnStart.setVisibility(View.INVISIBLE);
+                drill.run(DrillActivity.this);
+            }
+        });
     }
 
 
@@ -33,4 +48,6 @@ public class DrillActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
 }

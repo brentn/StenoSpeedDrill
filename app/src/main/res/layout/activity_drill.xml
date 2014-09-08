@@ -9,8 +9,30 @@
     tools:context=".DrillActivity">
 
     <TextView
-        android:text="@string/hello_world"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        style="@style/PresentationText"
+        android:lines="3"
+        android:linksClickable="true"
+        android:gravity="center"
+        android:text="[empty]"
+        android:singleLine="false"
+        android:id="@+id/textView" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        style="@style/InputText"/>
+
+    <Button
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="@string/btn_start"
+        android:id="@+id/start_button"
+        android:layout_alignBottom="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="36dp"
+        android:background="@android:drawable/btn_default"
+        android:minWidth="150dp" />
 
 </RelativeLayout>
