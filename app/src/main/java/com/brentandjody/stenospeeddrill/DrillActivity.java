@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 
 public class DrillActivity extends Activity {
@@ -13,22 +14,30 @@ public class DrillActivity extends Activity {
 
     private Drill drill;
     private Button btnStart;
+    private TextView presentation_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drill);
+        presentation_text = (TextView) findViewById(R.id.presentation_text);
         btnStart = (Button) findViewById(R.id.start_button);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                drill = new Drill();
+                drill = new Drill(presentation_text);
                 btnStart.setVisibility(View.INVISIBLE);
-                drill.run(DrillActivity.this);
+                drill.run();
             }
         });
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (drill != null)
+            drill.stop();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
