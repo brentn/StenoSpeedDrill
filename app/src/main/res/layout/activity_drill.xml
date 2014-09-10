@@ -23,6 +23,15 @@
             android:gravity="center"
             android:id="@+id/presentation_text"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/countdown"
+            android:layout_gravity="center"
+            android:textSize="42pt"
+            android:textIsSelectable="true"
+            android:textColor="@android:color/holo_blue_dark" />
+
     </FrameLayout>
 
     <EditText

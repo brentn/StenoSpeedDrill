@@ -15,19 +15,21 @@ public class DrillActivity extends Activity {
     private Drill drill;
     private Button btnStart;
     private TextView presentation_text;
+    private TextView countdown_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drill);
         presentation_text = (TextView) findViewById(R.id.presentation_text);
+        countdown_text = (TextView) findViewById(R.id.countdown);
         btnStart = (Button) findViewById(R.id.start_button);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                drill = new Drill(DrillActivity.this, presentation_text);
+                drill = new Drill(DrillActivity.this, countdown_text, presentation_text);
                 btnStart.setVisibility(View.INVISIBLE);
-                drill.execute();
+                drill.run();
             }
         });
     }
