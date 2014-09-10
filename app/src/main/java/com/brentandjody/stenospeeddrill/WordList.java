@@ -26,7 +26,7 @@ public class WordList {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(
-                    new InputStreamReader(context.getAssets().open("AmericanWordList.txt")));
+                    new InputStreamReader(context.getAssets().open("1000words.txt")));
             String word = reader.readLine();
             while (word != null) {
                 wordlist.add(word);

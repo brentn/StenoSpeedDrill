@@ -2,6 +2,7 @@ package com.brentandjody.stenospeeddrill;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 import android.view.animation.AlphaAnimation;
@@ -19,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by brentn on 08/09/14.
  */
-public class Drill {
+public class Drill extends AsyncTask<Void, String, Void> {
 
     //Settings
     //TODO: move this into settings activity
@@ -34,7 +35,6 @@ public class Drill {
     private static final int COUNTDOWN_FROM = 3;
 
     //instance variables
-    private CountDownLatch latch;
     private WordList wordlist;
     private long drill_start_time;
     private float accuracy;
@@ -51,13 +51,15 @@ public class Drill {
         accuracy=0;
     }
 
-    public void run() {
+    @Override
+    protected Void doInBackground(Void... voids) {
         try {
             countdown();
             run_drill();
         } catch (InterruptedException e) {
             stopped=true;
         }
+        return null;
     }
 
     public void end() {
@@ -72,16 +74,9 @@ public class Drill {
     }
 
     private void countdown() throws InterruptedException {
-        Handler handler = new Handler();
-        Animation fadeout = new AlphaAnimation(0.1f, 0.0f);
-        fadeout.setDuration(1000);
         for (Integer i=COUNTDOWN_FROM; i>0; i--) {
-            latch = new CountDownLatch(1);
-            presentation_area.setText(i.toString());
-            Log.d(TAG, i.toString());
-            presentation_area.startAnimation(fadeout);
-            handler.postDelayed(count_down(), 1000);
-            latch.await();
+            displayNumber(i);
+            Thread.sleep(1000);
         }
     }
 
@@ -104,11 +99,26 @@ public class Drill {
         return result;
     }
 
+    private void displayNumber(final Integer i) {
+        final Animation fadeout = new AlphaAnimation(0.1f, 0.0f);
+        fadeout.setDuration(1000);
+        Log.d(TAG, i.toString());
+        ((Activity) mContext).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                presentation_area.setText(i.toString());
+                presentation_area.startAnimation(fadeout);
+            }
+        });
+    }
+
     private void displayWords(List<String> words) {
         final StringBuilder output = new StringBuilder();
-        for (String word : words) {
-            output.append(word);
-            output.append(" ");
+        if (words != null) {
+            for (String word : words) {
+                output.append(word);
+                output.append(" ");
+            }
         }
         Log.d(TAG, output.toString());
         ((Activity)mContext).runOnUiThread(new Runnable() {
@@ -120,35 +130,17 @@ public class Drill {
     }
 
     private void run_drill() throws InterruptedException {
-        Handler handler = new Handler();
         List<String> wordlist;
         drill_start_time = new Date().getTime();
-        handler.postDelayed(end_drill(), DRILL_DURATION*1000);
         while (!finished()) {
-            latch = new CountDownLatch(1);
             wordlist=getWords();
             displayWords(wordlist);
             int duration = (60000*count_letters(wordlist)/5)/PRESENTATION_SPEED;
-            handler.postDelayed(count_down(), duration);
-            latch.await();
+            Thread.sleep(duration);
         }
+        displayWords(null);
     }
 
-    private Runnable count_down() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "countdown");
-                latch.countDown();
-            }
-        };
-    }
-    private Runnable end_drill() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                stopped=true;
-            }
-        };
-    }
+
+
 }

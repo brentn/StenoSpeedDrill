@@ -27,7 +27,7 @@ public class DrillActivity extends Activity {
             public void onClick(View view) {
                 drill = new Drill(DrillActivity.this, presentation_text);
                 btnStart.setVisibility(View.INVISIBLE);
-                drill.run();
+                drill.execute();
             }
         });
     }
