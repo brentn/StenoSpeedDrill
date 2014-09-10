@@ -25,7 +25,7 @@ public class DrillActivity extends Activity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                drill = new Drill(presentation_text);
+                drill = new Drill(DrillActivity.this, presentation_text);
                 btnStart.setVisibility(View.INVISIBLE);
                 drill.run();
             }

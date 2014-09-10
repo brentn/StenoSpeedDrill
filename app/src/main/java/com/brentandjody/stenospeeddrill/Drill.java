@@ -1,5 +1,7 @@
 package com.brentandjody.stenospeeddrill;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 import android.view.animation.AlphaAnimation;
@@ -30,14 +32,17 @@ public class Drill {
     private static final String TAG = Drill.class.getSimpleName();
 
     //instance variables
-    private static final WordList wordlist = new WordList();
+    private WordList wordlist;
     private long drill_start_time;
     private float accuracy;
     private TextView presentation_area;
     private boolean stopped;
+    private Context mContext;
 
-    public Drill(TextView presentation) {
+    public Drill(Context context,TextView presentation) {
+        mContext = context;
         presentation_area = presentation;
+        wordlist = new WordList(context);
         stopped=false;
         drill_start_time=new Date().getTime();
         accuracy=0;
@@ -74,13 +79,18 @@ public class Drill {
     }
 
     private void displayWords(List<String> words) {
-        StringBuilder output = new StringBuilder();
+        final StringBuilder output = new StringBuilder();
         for (String word : words) {
             output.append(word);
             output.append(" ");
         }
         Log.d(TAG, output.toString());
-        presentation_area.setText(output.toString());
+        ((Activity)mContext).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                presentation_area.setText(output.toString());
+            }
+        });
     }
 
     private Runnable main_drill_loop() {
