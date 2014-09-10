@@ -36,7 +36,7 @@ public class DrillActivity extends Activity {
     protected void onStop() {
         super.onStop();
         if (drill != null)
-            drill.stop();
+            drill.end();
     }
 
     @Override
