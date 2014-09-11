@@ -1,11 +1,13 @@
 package com.brentandjody.stenospeeddrill;
 
-import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -32,20 +34,28 @@ public class Drill {
     //instance variables
     private WordList wordlist;
     private long drill_start_time;
-    private float accuracy;
-    private TextView presentation_text;
-    private TextView countdown_text;
+    private int total_chars, errors;
+    private TextView presentation_text, countdown_text, speed_text, accuracy_text, timer_text;
+    private EditText input_text;
     private boolean finished;
-    private Context mContext;
+    private DrillActivity activity;
 
-    public Drill(Context context,TextView countdown, TextView presentation) {
-        mContext = context;
-        countdown_text = countdown;
-        presentation_text = presentation;
+    public Drill(Context context) {
+        activity = (DrillActivity)context;
+        presentation_text = (TextView) activity.findViewById(R.id.presentation_text);
+        countdown_text = (TextView) activity.findViewById(R.id.countdown_text);
+        input_text = (EditText) activity.findViewById(R.id.input_text);
+        speed_text = (TextView) activity.findViewById(R.id.speed);
+        accuracy_text = (TextView) activity.findViewById(R.id.accuracy);
+        timer_text = (TextView) activity.findViewById(R.id.countdown);
         wordlist = new WordList(context);
         finished =false;
         drill_start_time=new Date().getTime();
-        accuracy=0;
+        total_chars=0;
+        errors=0;
+        speed_text.setText(PRESENTATION_SPEED+" wpm");
+        accuracy_text.setText("100%");
+        timer_text.setText(DRILL_DURATION/60+":"+String.format("%02d", (DRILL_DURATION % 60)));
     }
 
     public void run() {
@@ -67,47 +77,88 @@ public class Drill {
     }
 
     private void countdown() throws InterruptedException {
-        final Animation fadeout = new AlphaAnimation(0.1f, 0.0f);
-        fadeout.setDuration(1000);
         for (Integer i=COUNTDOWN_FROM; i>0; i--) {
             final String text = i.toString();
             Log.d(TAG, text);
-            ((Activity) mContext).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    countdown_text.setText(text);
-                    countdown_text.startAnimation(fadeout);
-                }
-            });
+            setCountdownText(text);
             Thread.sleep(1000);
         }
-        ((Activity) mContext).runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                countdown_text.setVisibility(View.GONE);
-            }
-        });
+        hideCountdown();
     }
 
     private void run_drill() throws InterruptedException {
         List<String> wordlist;
         drill_start_time = new Date().getTime();
+        start_timer();
         while (!finished) {
-            wordlist=getWords();
+            wordlist= getNewWords();
             displayWords(wordlist);
             int duration = (60000* total_letters(wordlist)/5)/PRESENTATION_SPEED;
             Thread.sleep(duration);
+            grade(cutFromInput(), wordlist);
             if ((new Date().getTime()-drill_start_time) > (DRILL_DURATION*1000))
                 finished=true;
         }
         displayWords(null);
     }
 
-    private List<String> getWords() {
+    private void grade(final List<String> copy, final List<String> original) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                total_chars += total_letters(original);
+                for (int i=0; i<PRESENTATION_WORDS; i++) {
+                    if (copy.size() < (i+1)) { //there is no input for this item
+                        errors += original.get(i).length()+1; //plus 1 for the space
+                        Log.d(TAG, "no input for " + original.get(i) + "("+original.get(i).length()+")");
+                    } else {
+                        int difference = LevenshteinDistance(original.get(i), copy.get(i));
+                        errors += difference;
+                        Log.d(TAG, "orig:"+original.get(i)+" copy:"+copy.get(i)+" diff:"+difference);
+                    }
+                }
+                int accuracy = Math.round(100 - (errors*100f/total_chars));
+                setAccuracyText(Float.toString(accuracy)+"%");
+                if (accuracy < ACCURACY_THRESHOLD)
+                    finished=true;
+                Log.d(TAG, errors + "/" + total_chars);
+            }
+        }).start();
+    }
+
+    private void start_timer() {
+        final long end_time = drill_start_time + (DRILL_DURATION * 1000);
+        new Thread( new Runnable() {
+            @Override
+            public void run() {
+                while (! finished) {
+                    long time = (end_time - (new Date().getTime())) / 1000;
+          //          if (time<0) time=0;
+                    try {
+                        Thread.sleep(1000);
+                        setTimerText(time / 60 + ":" + String.format("%02d", (time % 60)));
+                    } catch (InterruptedException e) {
+
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private List<String> getNewWords() {
         List<String> result = new ArrayList<String>();
         for (int i=0; i<PRESENTATION_WORDS; i++) {
             result.add(wordlist.getWord());
         }
+        return result;
+    }
+
+    private List<String> cutFromInput() {
+        List<String> result = new ArrayList<String>();
+        for (String word : input_text.getText().toString().split(" ")) {
+            result.add(word);
+        }
+        clearInputText();
         return result;
     }
 
@@ -131,13 +182,85 @@ public class Drill {
             }
         }
         Log.d(TAG, output.toString());
-        ((Activity)mContext).runOnUiThread(new Runnable() {
+        setPresentationText(output.toString());
+    }
+
+    public void hideCountdown() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                presentation_text.setText(output.toString());
+                countdown_text.setVisibility(View.GONE);
             }
         });
     }
 
+    public void clearInputText() {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                input_text.setText("");
+            }
+        });
+    }
 
+    public void setTimerText(final String text) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                timer_text.setText(text);
+            }
+        });
+    }
+
+    public void setCountdownText(final String text) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Animation fadeout = new AlphaAnimation(0.1f, 0.0f);
+                fadeout.setDuration(1000);
+                countdown_text.setText(text);
+                countdown_text.startAnimation(fadeout);
+            }
+        });
+    }
+
+    public void setPresentationText(final String text) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                presentation_text.setText(text);
+            }
+        });
+    }
+
+    public void setAccuracyText(final String text) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                accuracy_text.setText(text);
+            }
+        });
+    }
+
+    public int LevenshteinDistance (String s0, String s1) {
+        if (s0.equals(s1)) return 0;
+        int len0 = s0.length() + 1;
+        int len1 = s1.length() + 1;
+        int[] cost = new int[len0];
+        int[] newcost = new int[len0];
+
+        for (int i = 0; i < len0; i++) cost[i] = i;
+        for (int j = 1; j < len1; j++) {
+            newcost[0] = j;
+            for(int i = 1; i < len0; i++) {
+                int match = (s0.charAt(i - 1) == s1.charAt(j - 1)) ? 0 : 1;
+                int cost_replace = cost[i - 1] + match;
+                int cost_insert  = cost[i] + 1;
+                int cost_delete  = newcost[i - 1] + 1;
+                newcost[i] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
+            }
+            int[] swap = cost; cost = newcost; newcost = swap;
+        }
+        return cost[len0 - 1];
+    }
 }

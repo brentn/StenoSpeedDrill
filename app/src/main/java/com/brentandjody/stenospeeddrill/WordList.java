@@ -51,6 +51,6 @@ public class WordList {
             Log.e(TAG, "Wordlist not loaded");
             return " - ";
         }
-        return wordlist.get(rand.nextInt(wordlist.size()+1));
+        return wordlist.get(rand.nextInt(wordlist.size()));
     }
 }
