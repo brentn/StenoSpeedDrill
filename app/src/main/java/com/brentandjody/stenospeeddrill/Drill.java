@@ -1,8 +1,6 @@
 package com.brentandjody.stenospeeddrill;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -22,16 +20,17 @@ public class Drill {
     //Settings
     //TODO: move this into settings activity
     private static final String WORD_LIST = "";        //words to drill on (use internal list if blank)
-    private static final int DRILL_DURATION = 300;     //end drill after this length of time (in seconds)
+    private static final int DRILL_DURATION = 600;     //end drill after this length of time (in seconds)
     private static final int PRESENTATION_WORDS = 5;   //how many words are displayed at a time?
-    private static final int PRESENTATION_SPEED = 40;  //how quickly are new words displayed?
-    private static final int SPEEDUP_INTERVAL = 0;     //how often will the speed increase by 5%? (in seconds)
+    private static final int INITIAL_SPEED = 40;  //how quickly are new words displayed?
+    private static final int SPEEDUP_INTERVAL = 10;     //how often will the speed increase(in seconds)
     private static final int ACCURACY_THRESHOLD = 95;  //end drill when accuracy drops below this percentage
 
     private static final String TAG = Drill.class.getSimpleName();
     private static final int COUNTDOWN_FROM = 3;
 
     //instance variables
+    private int presentation_speed;
     private WordList wordlist;
     private long drill_start_time;
     private int total_chars, errors;
@@ -39,6 +38,7 @@ public class Drill {
     private EditText input_text;
     private boolean finished;
     private DrillActivity activity;
+    private String message;
 
     public Drill(Context context) {
         activity = (DrillActivity)context;
@@ -50,10 +50,11 @@ public class Drill {
         timer_text = (TextView) activity.findViewById(R.id.countdown);
         wordlist = new WordList(context);
         finished =false;
+        presentation_speed = INITIAL_SPEED;
         drill_start_time=new Date().getTime();
         total_chars=0;
         errors=0;
-        speed_text.setText(PRESENTATION_SPEED+" wpm");
+        speed_text.setText(presentation_speed +" wpm");
         accuracy_text.setText("100%");
         timer_text.setText(DRILL_DURATION/60+":"+String.format("%02d", (DRILL_DURATION % 60)));
     }
@@ -67,6 +68,7 @@ public class Drill {
                     run_drill();
                 } catch (InterruptedException e) {
                     finished =true;
+                    message = "Drill interrupted...";
                 }
             }
         }).start();
@@ -93,13 +95,15 @@ public class Drill {
         while (!finished) {
             wordlist= getNewWords();
             displayWords(wordlist);
-            int duration = (60000* total_letters(wordlist)/5)/PRESENTATION_SPEED;
+            int duration = (60000* total_letters(wordlist)/5)/ presentation_speed;
             Thread.sleep(duration);
             grade(cutFromInput(), wordlist);
-            if ((new Date().getTime()-drill_start_time) > (DRILL_DURATION*1000))
-                finished=true;
+            if ((new Date().getTime()-drill_start_time) > (DRILL_DURATION*1000)) {
+                finished = true;
+                message = "Drill Completed.";
+            }
         }
-        displayWords(null);
+        setPresentationText(message);
     }
 
     private void grade(final List<String> copy, final List<String> original) {
@@ -119,8 +123,10 @@ public class Drill {
                 }
                 int accuracy = Math.round(100 - (errors*100f/total_chars));
                 setAccuracyText(Float.toString(accuracy)+"%");
-                if (accuracy < ACCURACY_THRESHOLD)
-                    finished=true;
+                if (accuracy < ACCURACY_THRESHOLD) {
+                    finished = true;
+                    message = "Drill ended due to inaccuracy.";
+                }
                 Log.d(TAG, errors + "/" + total_chars);
             }
         }).start();
@@ -131,14 +137,21 @@ public class Drill {
         new Thread( new Runnable() {
             @Override
             public void run() {
+                long now = new Date().getTime();
+                long next_speedup = now+(SPEEDUP_INTERVAL*1000);
                 while (! finished) {
-                    long time = (end_time - (new Date().getTime())) / 1000;
-          //          if (time<0) time=0;
+                    now = new Date().getTime();
+                    long time = (end_time - now) / 1000;
                     try {
                         Thread.sleep(1000);
                         setTimerText(time / 60 + ":" + String.format("%02d", (time % 60)));
+                        if (now > next_speedup) {
+                            presentation_speed += 1;
+                            next_speedup = now+(SPEEDUP_INTERVAL*1000);
+                        }
                     } catch (InterruptedException e) {
-
+                        finished=true;
+                        message="Timer interrupted.";
                     }
                 }
             }
@@ -189,6 +202,7 @@ public class Drill {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                countdown_text.setText("");
                 countdown_text.setVisibility(View.GONE);
             }
         });
