@@ -1,24 +1,33 @@
 package com.brentandjody.stenospeeddrill;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.widget.TextView;
 
+import java.util.Locale;
 
-public class DrillActivity extends Activity {
+
+public class DrillActivity extends Activity implements OnInitListener {
 
 
     private Drill drill;
-    private Button btnStart;
+    Button btnStart;
+    private int DATA_CHECK_CODE = 0;
+    private TextToSpeech TTS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent checkTTSIntent = new Intent();
+        checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkTTSIntent, DATA_CHECK_CODE);
         setContentView(R.layout.activity_drill);
         final TextView presentation = (TextView) findViewById(R.id.presentation_text);
         btnStart = (Button) findViewById(R.id.start_button);
@@ -34,10 +43,23 @@ public class DrillActivity extends Activity {
     }
 
     @Override
+    public void onInit(int initStatus) {
+        if (initStatus == TextToSpeech.SUCCESS) {
+            TTS.setLanguage(Locale.US);
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         if (drill != null)
             drill.end();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        TTS.shutdown();
     }
 
     @Override
@@ -59,9 +81,24 @@ public class DrillActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void showStartButton() {
-        btnStart.setVisibility(View.VISIBLE);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == DATA_CHECK_CODE) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                TTS = new TextToSpeech(this, this);
+            }
+            else {
+                Intent installTTSIntent = new Intent();
+                installTTSIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                startActivity(installTTSIntent);
+            }
+        }
     }
 
+    public void speak(String word) {
+        TTS.speak(word, TextToSpeech.QUEUE_FLUSH, null);
+    }
 
+    public void silence() {
+        TTS.stop();
+    }
 }

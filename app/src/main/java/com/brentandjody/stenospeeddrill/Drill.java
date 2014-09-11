@@ -2,12 +2,12 @@ package com.brentandjody.stenospeeddrill;
 
 import android.content.Context;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -26,6 +26,7 @@ public class Drill {
     private static final int INITIAL_SPEED = 30;  //how quickly are new words displayed?
     private static final int SPEEDUP_INTERVAL = 10;     //how often will the speed increase(in seconds)
     private static final int ACCURACY_THRESHOLD = 75;  //end drill when accuracy drops below this percentage
+    private static final boolean SPEECH = true;
 
     private static final String TAG = Drill.class.getSimpleName();
     private static final int COUNTDOWN_FROM = 3;
@@ -74,10 +75,7 @@ public class Drill {
                     countdown();
                     run_drill();
                 } catch (InterruptedException e) {
-                    clearInputText();
-                    enableInput(false);
-                    setPresentationText(message);
-                    showStartButton();
+                    end_drill();
                 }
             }
         });
@@ -90,6 +88,7 @@ public class Drill {
     }
 
     private void countdown() throws InterruptedException {
+        enableInput(true);
         for (Integer i=COUNTDOWN_FROM; i>0; i--) {
             final String text = i.toString();
             Log.d(TAG, text);
@@ -102,7 +101,6 @@ public class Drill {
     private void run_drill() throws InterruptedException {
         List<String> wordlist;
         drill_start_time = new Date().getTime();
-        enableInput(true);
         start_timer();
         while (!finished) {
             wordlist= getNewWords();
@@ -118,7 +116,12 @@ public class Drill {
                 message = "Drill Completed.";
             }
         }
+        end_drill();
+    }
+
+    private void end_drill() {
         clearInputText();
+        activity.silence();
         enableInput(false);
         setPresentationText(message);
         showStartButton();
@@ -166,7 +169,8 @@ public class Drill {
                         // update timer
                         setTimerText(time / 60 + ":" + String.format("%02d", (time % 60)));
                         // update progress bar
-                        setProgress(Math.round(100 * (now - presentation_start_time) / presentation_duration));
+                        int progress =(Math.round(100 * (now - presentation_start_time) / presentation_duration));
+                        setProgress(progress);
                         // increase speed?
                         if (now > next_speedup) {
                             presentation_speed += 1;
@@ -217,6 +221,9 @@ public class Drill {
         }
         Log.d(TAG, output.toString());
         setPresentationText(output.toString());
+        if (SPEECH) {
+            activity.speak(output.toString().replace(" ", ". "));
+        }
     }
 
     private void hideCountdown() {
@@ -232,7 +239,7 @@ public class Drill {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                activity.showStartButton();
+                activity.findViewById(R.id.start_button).setVisibility(View.VISIBLE);
             }
         });
     }
