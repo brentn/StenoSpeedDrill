@@ -9,11 +9,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 /**
  * Created by brentn on 08/09/14.
+ * Intended to test and improve typing speed using steno hardware
  */
 public class Drill {
 
@@ -168,9 +170,7 @@ public class Drill {
 
     private List<String> cutFromInput() {
         List<String> result = new ArrayList<String>();
-        for (String word : input_text.getText().toString().split(" ")) {
-            result.add(word);
-        }
+        Collections.addAll(result, input_text.getText().toString().split(" "));
         clearInputText();
         return result;
     }
