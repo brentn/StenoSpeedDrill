@@ -2,10 +2,10 @@ package com.brentandjody.stenospeeddrill;
 
 import android.content.Context;
 import android.util.Log;
-import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -21,7 +21,6 @@ public class Drill {
 
     //Settings
     //TODO: move this into settings activity
-    private static final String WORD_LIST = "";        //words to drill on (use internal list if blank)
     private static final int DRILL_DURATION = 600;     //end drill after this length of time (in seconds)
     private static final int PRESENTATION_WORDS = 5;   //how many words are displayed at a time?
     private static final int INITIAL_SPEED = 30;  //how quickly are new words displayed?
@@ -34,10 +33,11 @@ public class Drill {
     //instance variables
     private int presentation_speed;
     private WordList wordlist;
-    private long drill_start_time;
-    private int total_chars, errors;
+    private long drill_start_time, presentation_start_time;
+    private int total_chars, errors, presentation_duration;
     private TextView presentation_text, countdown_text, speed_text, accuracy_text, timer_text;
     private EditText input_text;
+    private ProgressBar progress;
     private boolean finished;
     private DrillActivity activity;
     private String message;
@@ -51,12 +51,14 @@ public class Drill {
         speed_text = (TextView) activity.findViewById(R.id.speed);
         accuracy_text = (TextView) activity.findViewById(R.id.accuracy);
         timer_text = (TextView) activity.findViewById(R.id.countdown);
+        progress = (ProgressBar) activity.findViewById(R.id.progress);
         wordlist = new WordList(context);
         finished =false;
         presentation_speed = INITIAL_SPEED;
         drill_start_time=new Date().getTime();
         total_chars=0;
         errors=0;
+        progress.setProgress(0);
         speed_text.setText(presentation_speed +" wpm");
         accuracy_text.setText("100%");
         timer_text.setText(DRILL_DURATION/60+":"+String.format("%02d", (DRILL_DURATION % 60)));
@@ -105,9 +107,11 @@ public class Drill {
         while (!finished) {
             wordlist= getNewWords();
             displayWords(wordlist);
-            int duration = (60000* total_letters(wordlist)/5)/ presentation_speed;
+            presentation_start_time = new Date().getTime();
+            presentation_duration = (60000* total_letters(wordlist)/5)/ presentation_speed;
             clearInputText(); //reset input, in case there are straggling words from last set
-            Thread.sleep(duration);
+            setProgress(0);
+            Thread.sleep(presentation_duration);
             grade(cutFromInput(), wordlist);
             if ((new Date().getTime()-drill_start_time) > (DRILL_DURATION*1000)) {
                 finished = true;
@@ -158,8 +162,12 @@ public class Drill {
                     now = new Date().getTime();
                     long time = (end_time - now) / 1000;
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(100);
+                        // update timer
                         setTimerText(time / 60 + ":" + String.format("%02d", (time % 60)));
+                        // update progress bar
+                        setProgress(Math.round(100 * (now - presentation_start_time) / presentation_duration));
+                        // increase speed?
                         if (now > next_speedup) {
                             presentation_speed += 1;
                             next_speedup = now+(SPEEDUP_INTERVAL*1000);
@@ -234,6 +242,9 @@ public class Drill {
             @Override
             public void run() {
                 input_text.setEnabled(enable);
+                if (enable) {
+                    input_text.requestFocus();
+                }
             }
         });
     }
@@ -243,6 +254,15 @@ public class Drill {
             @Override
             public void run() {
                 input_text.setText("");
+            }
+        });
+    }
+
+    private void setProgress(final int percent) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setProgress(percent);
             }
         });
     }

@@ -56,6 +56,16 @@
         android:layout_centerVertical="true"
         android:layout_marginTop="30dp" />
 
+    <ProgressBar
+        style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="24dip"
+        android:id="@+id/progress"
+        android:layout_below="@+id/presentation_area"
+        android:progress="0"
+        android:max="100"
+        android:progressDrawable="@drawable/progress" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -65,7 +75,9 @@
         android:layout_below="@+id/presentation_area"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:singleLine="true" />
+        android:singleLine="true"
+        android:layout_marginLeft="15dp"
+        android:textColor="@android:color/white" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -76,7 +88,9 @@
         android:singleLine="true"
         android:layout_below="@+id/presentation_area"
         android:layout_alignRight="@+id/presentation_area"
-        android:layout_alignEnd="@+id/presentation_area" />
+        android:layout_alignEnd="@+id/presentation_area"
+        android:layout_marginRight="15dp"
+        android:textColor="@android:color/white" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -86,6 +100,7 @@
         android:id="@+id/countdown"
         android:singleLine="true"
         android:layout_above="@+id/input_text"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:textColor="@android:color/white" />
 
 </RelativeLayout>
