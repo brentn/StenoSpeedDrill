@@ -24,9 +24,9 @@ public class Drill {
     private static final String WORD_LIST = "";        //words to drill on (use internal list if blank)
     private static final int DRILL_DURATION = 600;     //end drill after this length of time (in seconds)
     private static final int PRESENTATION_WORDS = 5;   //how many words are displayed at a time?
-    private static final int INITIAL_SPEED = 40;  //how quickly are new words displayed?
+    private static final int INITIAL_SPEED = 30;  //how quickly are new words displayed?
     private static final int SPEEDUP_INTERVAL = 10;     //how often will the speed increase(in seconds)
-    private static final int ACCURACY_THRESHOLD = 95;  //end drill when accuracy drops below this percentage
+    private static final int ACCURACY_THRESHOLD = 80;  //end drill when accuracy drops below this percentage
 
     private static final String TAG = Drill.class.getSimpleName();
     private static final int COUNTDOWN_FROM = 3;
@@ -41,6 +41,7 @@ public class Drill {
     private boolean finished;
     private DrillActivity activity;
     private String message;
+    private Thread main;
 
     public Drill(Context context) {
         activity = (DrillActivity)context;
@@ -62,18 +63,18 @@ public class Drill {
     }
 
     public void run() {
-        new Thread(new Runnable() {
+        main = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     countdown();
                     run_drill();
                 } catch (InterruptedException e) {
-                    finished =true;
-                    message = "Drill interrupted...";
+                    setPresentationText(message);
                 }
             }
-        }).start();
+        });
+        main.start();
     }
 
     public void end() {
@@ -99,6 +100,7 @@ public class Drill {
             wordlist= getNewWords();
             displayWords(wordlist);
             int duration = (60000* total_letters(wordlist)/5)/ presentation_speed;
+            clearInputText(); //reset input, in case there are straggling words from last set
             Thread.sleep(duration);
             grade(cutFromInput(), wordlist);
             if ((new Date().getTime()-drill_start_time) > (DRILL_DURATION*1000)) {
@@ -119,7 +121,7 @@ public class Drill {
                         errors += original.get(i).length()+1; //plus 1 for the space
                         Log.d(TAG, "no input for " + original.get(i) + "("+original.get(i).length()+")");
                     } else {
-                        int difference = LevenshteinDistance(original.get(i), copy.get(i));
+                        int difference = LevenshteinDistance(original.get(i).toLowerCase(), copy.get(i).toLowerCase());
                         errors += difference;
                         Log.d(TAG, "orig:"+original.get(i)+" copy:"+copy.get(i)+" diff:"+difference);
                     }
@@ -129,6 +131,7 @@ public class Drill {
                 if (accuracy < ACCURACY_THRESHOLD) {
                     finished = true;
                     message = "Drill ended due to inaccuracy.";
+                    main.interrupt();
                 }
                 Log.d(TAG, errors + "/" + total_chars);
             }
@@ -199,7 +202,7 @@ public class Drill {
         setPresentationText(output.toString());
     }
 
-    public void hideCountdown() {
+    private void hideCountdown() {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -209,7 +212,7 @@ public class Drill {
         });
     }
 
-    public void clearInputText() {
+    private void clearInputText() {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -218,7 +221,7 @@ public class Drill {
         });
     }
 
-    public void setTimerText(final String text) {
+    private void setTimerText(final String text) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -227,7 +230,7 @@ public class Drill {
         });
     }
 
-    public void setCountdownText(final String text) {
+    private void setCountdownText(final String text) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -239,7 +242,7 @@ public class Drill {
         });
     }
 
-    public void setPresentationText(final String text) {
+    private void setPresentationText(final String text) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -248,7 +251,7 @@ public class Drill {
         });
     }
 
-    public void setAccuracyText(final String text) {
+    private void setAccuracyText(final String text) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -257,7 +260,7 @@ public class Drill {
         });
     }
 
-    public int LevenshteinDistance (String s0, String s1) {
+    private int LevenshteinDistance (String s0, String s1) {
         if (s0.equals(s1)) return 0;
         int len0 = s0.length() + 1;
         int len1 = s1.length() + 1;
