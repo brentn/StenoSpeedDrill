@@ -26,7 +26,7 @@ public class Drill {
     private static final int PRESENTATION_WORDS = 5;   //how many words are displayed at a time?
     private static final int INITIAL_SPEED = 30;  //how quickly are new words displayed?
     private static final int SPEEDUP_INTERVAL = 10;     //how often will the speed increase(in seconds)
-    private static final int ACCURACY_THRESHOLD = 80;  //end drill when accuracy drops below this percentage
+    private static final int ACCURACY_THRESHOLD = 75;  //end drill when accuracy drops below this percentage
 
     private static final String TAG = Drill.class.getSimpleName();
     private static final int COUNTDOWN_FROM = 3;
@@ -63,6 +63,8 @@ public class Drill {
     }
 
     public void run() {
+        clearInputText();
+        enableInput(false);
         main = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -70,7 +72,10 @@ public class Drill {
                     countdown();
                     run_drill();
                 } catch (InterruptedException e) {
+                    clearInputText();
+                    enableInput(false);
                     setPresentationText(message);
+                    showStartButton();
                 }
             }
         });
@@ -95,6 +100,7 @@ public class Drill {
     private void run_drill() throws InterruptedException {
         List<String> wordlist;
         drill_start_time = new Date().getTime();
+        enableInput(true);
         start_timer();
         while (!finished) {
             wordlist= getNewWords();
@@ -108,7 +114,10 @@ public class Drill {
                 message = "Drill Completed.";
             }
         }
+        clearInputText();
+        enableInput(false);
         setPresentationText(message);
+        showStartButton();
     }
 
     private void grade(final List<String> copy, final List<String> original) {
@@ -207,7 +216,24 @@ public class Drill {
             @Override
             public void run() {
                 countdown_text.setText("");
-                countdown_text.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void showStartButton() {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                activity.showStartButton();
+            }
+        });
+    }
+
+    private void enableInput(final boolean enable) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                input_text.setEnabled(enable);
             }
         });
     }

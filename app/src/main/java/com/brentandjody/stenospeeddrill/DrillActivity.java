@@ -20,12 +20,14 @@ public class DrillActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drill);
+        final TextView presentation = (TextView) findViewById(R.id.presentation_text);
         btnStart = (Button) findViewById(R.id.start_button);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 drill = new Drill(DrillActivity.this);
                 btnStart.setVisibility(View.INVISIBLE);
+                presentation.setText("");
                 drill.run();
             }
         });
@@ -55,6 +57,10 @@ public class DrillActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showStartButton() {
+        btnStart.setVisibility(View.VISIBLE);
     }
 
 
