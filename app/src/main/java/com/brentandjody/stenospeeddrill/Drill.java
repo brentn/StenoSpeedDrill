@@ -22,7 +22,7 @@ public class Drill {
     //Settings
     //TODO: move this into settings activity
     private static final String WORD_LIST = "";        //words to drill on (use internal list if blank)
-    private static final int DRILL_DURATION = 30;     //end drill after this length of time (in seconds)
+    private static final int DRILL_DURATION = 300;     //end drill after this length of time (in seconds)
     private static final int PRESENTATION_WORDS = 5;   //how many words are displayed at a time?
     private static final int PRESENTATION_SPEED = 40;  //how quickly are new words displayed?
     private static final int SPEEDUP_INTERVAL = 0;     //how often will the speed increase by 5%? (in seconds)
