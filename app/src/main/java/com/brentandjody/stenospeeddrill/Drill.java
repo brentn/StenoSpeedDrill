@@ -78,6 +78,7 @@ public class Drill {
 
     public void end() {
         finished =true;
+        message = "Drill was interrupted.";
     }
 
     private void countdown() throws InterruptedException {
