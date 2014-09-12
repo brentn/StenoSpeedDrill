@@ -1,0 +1,63 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="key_drill_duration"
+        android:title="@string/drill_duration"
+        android:summary="@string/desc_drill_duration"
+        android:defaultValue="10"
+        android:selectAllOnFocus="true"
+        android:inputType="number"
+        android:numeric="integer"
+        android:singleLine="true"
+        android:maxLines="1"/>
+
+    <EditTextPreference
+        android:key="@string/key_presentation_words"
+        android:title="@string/presentation_words"
+        android:summary="@string/desc_presentation_words"
+        android:defaultValue="5"
+        android:selectAllOnFocus="true"
+        android:inputType="number"
+        android:numeric="integer"
+        android:singleLine="true"
+        android:maxLines="1" />
+
+    <EditTextPreference
+        android:key="@string/key_initial_speed"
+        android:title="@string/initial_speed"
+        android:summary="@string/desc_initial_speed"
+        android:defaultValue="30"
+        android:selectAllOnFocus="true"
+        android:inputType="number"
+        android:numeric="integer"
+        android:singleLine="true"
+        android:maxLines="1" />
+
+    <EditTextPreference
+        android:key="@string/key_speedup_interval"
+        android:title="@string/speedup_interval"
+        android:summary="@string/desc_speedup_interval"
+        android:defaultValue="30"
+        android:selectAllOnFocus="true"
+        android:inputType="number"
+        android:numeric="integer"
+        android:singleLine="true"
+        android:maxLines="1" />
+
+    <EditTextPreference
+        android:key="@string/key_accuracy_threshold"
+        android:title="@string/accuracy_threshold"
+        android:summary="@string/desc_accuracy_threshold"
+        android:defaultValue="75"
+        android:selectAllOnFocus="true"
+        android:inputType="number"
+        android:numeric="integer"
+        android:singleLine="true"
+        android:maxLines="1" />
+
+    <CheckBoxPreference
+        android:key="@string/key_use_speech"
+        android:title="@string/use_speech"
+        android:defaultValue="false" />
+
+</PreferenceScreen>

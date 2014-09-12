@@ -1,6 +1,7 @@
 package com.brentandjody.stenospeeddrill;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -20,13 +21,12 @@ import java.util.List;
 public class Drill {
 
     //Settings
-    //TODO: move this into settings activity
-    private static final int DRILL_DURATION = 600;     //end drill after this length of time (in seconds)
-    private static final int PRESENTATION_WORDS = 5;   //how many words are displayed at a time?
-    private static final int INITIAL_SPEED = 30;  //how quickly are new words displayed?
-    private static final int SPEEDUP_INTERVAL = 10;     //how often will the speed increase(in seconds)
-    private static final int ACCURACY_THRESHOLD = 75;  //end drill when accuracy drops below this percentage
-    private static final boolean SPEECH = true;
+    private static int DRILL_DURATION;     //end drill after this length of time (in seconds)
+    private static int PRESENTATION_WORDS;   //how many words are displayed at a time?
+    private static int INITIAL_SPEED;  //how quickly are new words displayed?
+    private static int SPEEDUP_INTERVAL;     //how often will the speed increase(in seconds)
+    private static int ACCURACY_THRESHOLD;  //end drill when accuracy drops below this percentage
+    private static boolean USE_SPEECH;
 
     private static final String TAG = Drill.class.getSimpleName();
     private static final int COUNTDOWN_FROM = 3;
@@ -46,6 +46,7 @@ public class Drill {
 
     public Drill(Context context) {
         activity = (DrillActivity)context;
+        load_preference_values();
         presentation_text = (TextView) activity.findViewById(R.id.presentation_text);
         countdown_text = (TextView) activity.findViewById(R.id.countdown_text);
         input_text = (EditText) activity.findViewById(R.id.input_text);
@@ -174,6 +175,7 @@ public class Drill {
                         // increase speed?
                         if (now > next_speedup) {
                             presentation_speed += 1;
+                            setSpeedText(presentation_speed+" wpm");
                             next_speedup = now+(SPEEDUP_INTERVAL*1000);
                         }
                     } catch (InterruptedException e) {
@@ -183,6 +185,16 @@ public class Drill {
                 }
             }
         }).start();
+    }
+
+    private void load_preference_values() {
+        SharedPreferences prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(activity);
+        DRILL_DURATION = Integer.parseInt(prefs.getString("key_drill_duration", "10")) * 60;
+        PRESENTATION_WORDS = Integer.parseInt(prefs.getString("key_presentation_words", "5"));
+        INITIAL_SPEED = Integer.parseInt(prefs.getString("key_initial_speed", "30"));
+        SPEEDUP_INTERVAL = Integer.parseInt(prefs.getString("key_speedup_interval", "30"));
+        ACCURACY_THRESHOLD = Integer.parseInt(prefs.getString("key_accuracy_threshold", "75"));
+        USE_SPEECH = prefs.getBoolean("key_use_speech", false);
     }
 
     private List<String> getNewWords() {
@@ -221,7 +233,7 @@ public class Drill {
         }
         Log.d(TAG, output.toString());
         setPresentationText(output.toString());
-        if (SPEECH) {
+        if (USE_SPEECH) {
             activity.speak(output.toString().replace(" ", ". "));
         }
     }
@@ -309,6 +321,15 @@ public class Drill {
             @Override
             public void run() {
                 accuracy_text.setText(text);
+            }
+        });
+    }
+
+    private void setSpeedText(final String text) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                speed_text.setText(text);
             }
         });
     }

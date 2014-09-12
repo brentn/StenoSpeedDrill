@@ -5,5 +5,22 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="btn_start">Begin</string>
+    <string name="drill_duration">Drill duration</string>
+    <string name="desc_drill_duration">How long should the drill run for?</string>
+    <string name="key_presentation_words">key_presentation_words</string>
+    <string name="presentation_words">Number of words</string>
+    <string name="desc_presentation_words">How many words will be presented at a time?</string>
+    <string name="key_initial_speed">key_initial_speed</string>
+    <string name="initial_speed">Initial speed</string>
+    <string name="desc_initial_speed">How many words per minute will be presented</string>
+    <string name="key_speedup_interval">key_speedup_interval</string>
+    <string name="speedup_interval">Speedup interval</string>
+    <string name="desc_speedup_interval">How often should the speed increase?</string>
+    <string name="key_accuracy_threshold">key_accuracy_threshold</string>
+    <string name="accuracy_threshold">Accuracy threshold</string>
+    <string name="desc_accuracy_threshold">The drill will end if accuracy drops below this level.</string>
+    <string name="key_use_speech">key_use_speech</string>
+    <string name="use_speech">Speak words</string>
+    <string name="title_activity_settings">Preferences</string>
 
 </resources>
