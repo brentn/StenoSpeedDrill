@@ -234,7 +234,10 @@ public class Drill {
         Log.d(TAG, output.toString());
         setPresentationText(output.toString());
         if (USE_SPEECH) {
-            activity.speak(output.toString().replace(" ", ". "));
+            String speech = output.toString();
+            if (presentation_speed < 100)
+                speech = speech.replace(" ", ". ");
+            activity.speak(speech);
         }
     }
 
